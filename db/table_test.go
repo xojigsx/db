@@ -12,7 +12,6 @@ import (
 
 const schema = `CREATE TABLE IF NOT EXISTS test_table (
   id          VARCHAR(24)   PRIMARY KEY,
-  slug        VARCHAR(128)  UNIQUE NOT NULL,
   field       VARCHAR(128)  NOT NULL,
   other_field VARCHAR(128)  NOT NULL,
   json_field  JSONB         NOT NULL DEFAULT '{}',
@@ -66,12 +65,16 @@ func TestTable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	nm, err := table.Get(ctx, m.ID)
+	nm, err := table.Select(ctx, "id", m.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ms, err := table.List(ctx, dbjson.TextPath{"json_field", "unique", "id"}, uniqtxt)
+	if len(nm) != 1 {
+		t.Fatalf("got %d, want 1", len(nm))
+	}
+
+	ms, err := table.Select(ctx, dbjson.TextPath{"json_field", "unique", "id"}, uniqtxt)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +93,7 @@ func TestTable(t *testing.T) {
 		"unique", dbjson.Object("id", uniqtxt),
 	)
 
-	got := nm.JSONField
+	got := nm[0].JSONField
 
 	if !dbjson.Equal(got, want) {
 		t.Fatalf("got %s, want %s", got, want)
@@ -100,14 +103,7 @@ func TestTable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := table.Get(ctx, m.ID); err != sql.ErrNoRows {
+	if _, err := table.Select(ctx, "id", m.ID); err != sql.ErrNoRows {
 		t.Fatal("expected sql.ErrNoRows")
 	}
-
-	ms, err = table.List(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_ = ms
 }
