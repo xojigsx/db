@@ -1,0 +1,62 @@
+name: Testing
+on: push
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=3
+      mysql:
+        image: mysql:8.0.30
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: mysql
+          MYSQL_RANDOM_ROOT_PASSWORD: yes
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: stable
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+        if: always()
+      - name: Test (PostgreSQL)
+        run: |2
+          go test -v -race ./...
+        env:
+          DATABASE_DRIVER: postgres
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/testing?sslmode=disable
+        if: always()
+      - name: Test (MySQL)
+        run: |2
+          go test -v -race ./...
+        env:
+          DATABASE_DRIVER: mysql
+          DATABASE_URL: mysql:mysql@tcp(localhost:3306)/testing?parseTime=true
+        if: always()
