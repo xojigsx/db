@@ -1,4 +1,4 @@
-package db_test
+package qp_test
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"jig.sx/usvc/db"
-	"jig.sx/usvc/db/dbjson"
+	"jig.sx/qp"
+	"jig.sx/qp/qpjson"
 )
 
 const schema = `CREATE TABLE IF NOT EXISTS test_table (
@@ -22,29 +22,29 @@ const schema = `CREATE TABLE IF NOT EXISTS test_table (
 `
 
 type Model struct {
-	db.Base
+	qp.Base
 
 	Field      string      `json:"field" db:"field"`
 	OtherField string      `json:"other_field" db:"other_field"`
-	JSONField  dbjson.Type `json:"json_field" db:"json_field"`
+	JSONField  qpjson.Type `json:"json_field" db:"json_field"`
 }
 
 func TestTable(t *testing.T) {
 	var (
 		ctx     = context.Background()
-		uniqtxt = db.ID("test")
+		uniqtxt = qp.ID("test")
 		driver  = os.Getenv("DATABASE_DRIVER")
 		dsn     = os.Getenv("DATABASE_URL")
 	)
 
-	xdb, err := db.Open(driver, dsn)
+	xqp, err := qp.Open(driver, dsn)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	xdb.MustExec(schema)
+	xqp.MustExec(schema)
 
-	table, err := db.NewTable[Model]("test_table", "tt", xdb)
+	table, err := qp.NewTable[Model]("test_table", "tt", xqp)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,14 +54,14 @@ func TestTable(t *testing.T) {
 	m := &Model{
 		Field:      "field",
 		OtherField: "other_field",
-		JSONField:  dbjson.Object("key", "value"),
+		JSONField:  qpjson.Object("key", "value"),
 	}
 
 	if err := table.Insert(ctx, m); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := table.Update(ctx, m.ID, "field", "meow value", "json_field", dbjson.Object("unique", dbjson.Object("id", uniqtxt), "foo", dbjson.Array(1, 2))); err != nil {
+	if err := table.Update(ctx, m.ID, "field", "meow value", "json_field", qpjson.Object("unique", qpjson.Object("id", uniqtxt), "foo", qpjson.Array(1, 2))); err != nil {
 		t.Fatal(err)
 	}
 
@@ -74,7 +74,7 @@ func TestTable(t *testing.T) {
 		t.Fatalf("got %d, want 1", len(nm))
 	}
 
-	ms, err := table.Select(ctx, dbjson.TextPath{"json_field", "unique", "id"}, uniqtxt)
+	ms, err := table.Select(ctx, qpjson.TextPath{"json_field", "unique", "id"}, uniqtxt)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,15 +87,15 @@ func TestTable(t *testing.T) {
 		t.Fatalf("got %s, want %s", ms[0].ID, m.ID)
 	}
 
-	want := dbjson.Object(
+	want := qpjson.Object(
 		"key", "value",
-		"foo", dbjson.Array(1, 2),
-		"unique", dbjson.Object("id", uniqtxt),
+		"foo", qpjson.Array(1, 2),
+		"unique", qpjson.Object("id", uniqtxt),
 	)
 
 	got := nm[0].JSONField
 
-	if !dbjson.Equal(got, want) {
+	if !qpjson.Equal(got, want) {
 		t.Fatalf("got %s, want %s", got, want)
 	}
 

@@ -1,13 +1,13 @@
-package dbjson_test
+package qpjson_test
 
 import (
 	"testing"
 
-	"jig.sx/usvc/db/dbjson"
+	"jig.sx/qp/qpjson"
 )
 
 func TestPath(t *testing.T) {
-	tests := map[string]dbjson.TextPath{
+	tests := map[string]qpjson.TextPath{
 		`foo`:                       {"foo"},
 		`foo->>'bar'`:               {"foo", "bar"},
 		`foo->'bar'->>'baz'`:        {"foo", "bar", "baz"},

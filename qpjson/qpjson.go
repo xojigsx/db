@@ -1,4 +1,4 @@
-package dbjson
+package qpjson
 
 import (
 	"encoding/json"

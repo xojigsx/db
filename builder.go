@@ -1,4 +1,4 @@
-package db
+package qp
 
 import (
 	"crypto/sha256"
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"jig.sx/usvc/db/dbjson"
+	"jig.sx/qp/qpjson"
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/jmoiron/sqlx/reflectx"
@@ -29,7 +29,7 @@ var funcs = template.FuncMap{
 		return strings.Join(sCopy, sep)
 	},
 	"isjson": func(v any) bool {
-		_, ok := v.(dbjson.Type)
+		_, ok := v.(qpjson.Type)
 		return ok
 	},
 }
@@ -162,7 +162,7 @@ func (b *builder) split(args ...any) (columns []string, values []any, err error)
 		var column, expr string
 
 		switch v := args[i].(type) {
-		case dbjson.Ref:
+		case qpjson.Ref:
 			column, expr = v.Column(), v.Expr()
 		case string:
 			column, expr = v, v

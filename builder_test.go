@@ -1,12 +1,11 @@
-package db
+package qp
 
 import (
 	"strings"
 	"testing"
 
-	"jig.sx/usvc/db/dbjson"
-
 	"github.com/jmoiron/sqlx/reflectx"
+	"jig.sx/qp/qpjson"
 )
 
 var mapper = reflectx.NewMapperFunc("json", strings.ToLower)
@@ -16,7 +15,7 @@ type User struct {
 
 	Name    string      `json:"name"`
 	Age     int         `json:"age"`
-	Details dbjson.Type `json:"details"`
+	Details qpjson.Type `json:"details"`
 }
 
 func TestBuilder(t *testing.T) {
@@ -43,7 +42,7 @@ func TestBuilder(t *testing.T) {
 		},
 		{
 			"postgres", "update",
-			[]interface{}{"age", 18, "name", "John", dbjson.Path{"details", "key"}, dbjson.Object("foo", "bar"), "id", "usr-132"},
+			[]interface{}{"age", 18, "name", "John", qpjson.Path{"details", "key"}, qpjson.Object("foo", "bar"), "id", "usr-132"},
 			"UPDATE users SET updated_at = NOW(), age = $1, name = $2, details->'key' = (CASE WHEN details->'key' = 'null'::jsonb THEN '{}'::jsonb ELSE details->'key' END) || (CASE WHEN $3 = 'null'::jsonb THEN '{}'::jsonb ELSE $3 END) WHERE deleted_at IS NULL AND id = $4 RETURNING updated_at;",
 		},
 		{
@@ -68,7 +67,7 @@ func TestBuilder(t *testing.T) {
 		},
 		{
 			"mysql", "update",
-			[]interface{}{"age", 18, "name", "John", dbjson.Path{"details", "key"}, dbjson.Object("foo", "bar"), "id", "usr-132"},
+			[]interface{}{"age", 18, "name", "John", qpjson.Path{"details", "key"}, qpjson.Object("foo", "bar"), "id", "usr-132"},
 			"UPDATE users SET updated_at = NOW(), age = $1, name = $2, details->'key' = JSON_MERGE_PATCH(details->'key', $3) WHERE deleted_at IS NULL AND id = $4;",
 		},
 		{
