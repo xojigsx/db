@@ -61,7 +61,6 @@ type builder struct {
 	dialects dialects
 	fields   []string
 	table    string
-	prefix   string
 }
 
 func newBuilder[T any](m *reflectx.Mapper, table string) *builder {
@@ -106,11 +105,11 @@ func (b *builder) query(driver, name string, args ...any) (*query, error) {
 
 	h := sha256.New()
 
-	io.WriteString(h, driver)
-	io.WriteString(h, name)
+	_, _ = io.WriteString(h, driver)
+	_, _ = io.WriteString(h, name)
 
 	for _, col := range columns {
-		io.WriteString(h, col)
+		_, _ = io.WriteString(h, col)
 	}
 
 	p := h.Sum(nil)

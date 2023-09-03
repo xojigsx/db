@@ -53,7 +53,7 @@ type DB struct {
 func New(dsn string) (*DB, error) {
     db, err := qp.Open(dsn)
     if err != nil {
-        return nil, fmt.Errorf("Failed to connect to db: %w", err)
+        return nil, fmt.Errorf("failed to connect to db: %w", err)
     }
 
     return &DB{
@@ -89,7 +89,7 @@ This populates:
 ```go
 user.CreatedAt // time.Time
 user.UpdatedAt // time.Time
-user.ID        // "key-4r2m96V48qRjWbXM"
+user.ID        // "usr-4r2m96V48qRjWbXM"
 ```
 
 ### Select Operations
